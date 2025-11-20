@@ -71,27 +71,6 @@ A Minecraft mod that adds infinite source blocks for water, lava, and milk, alon
   - Compatible with all fluid-based mods using NeoForge Fluid API
   - Compatible with all energy mods using FE/RF standard
 
-### Technical Details
-
-- **Mod Version**: 1.0.0
-- **Minecraft Version**: 1.21.1
-- **Mod Loader**: NeoForge 21.1.215+
-- **Java Version**: 21
-
-### Recipes
-
-#### Empty Source Block
-```
-[I] [B] [I]
-[B] [ ] [B]
-[I] [B] [I]
-
-I = Iron Ingot
-B = Bucket
-```
-
-#### Water/Lava Source Blocks
-- Shapeless: Empty Source Block + Water/Lava Bucket
 
 ---
 
@@ -161,27 +140,6 @@ B = Bucket
   - 兼容所有使用NeoForge流体API的模组
   - 兼容所有使用FE/RF标准的能量模组
 
-### 技术信息
-
-- **模组版本**：1.0.0
-- **Minecraft版本**：1.21.1
-- **模组加载器**：NeoForge 21.1.215+
-- **Java版本**：21
-
-### 合成配方
-
-#### 空源方块
-```
-[铁] [桶] [铁]
-[桶] [空] [桶]
-[铁] [桶] [铁]
-
-铁 = 铁锭
-桶 = 桶
-```
-
-#### 水/岩浆源方块
-- 无序合成：空源方块 + 水桶/岩浆桶
 
 ---
 
@@ -190,8 +148,3 @@ B = Bucket
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 本项目采用MIT许可证 - 详情请参阅 [LICENSE](LICENSE) 文件。
-
-## Links | 链接
-
-- NeoForged Documentation: https://docs.neoforged.net/
-- NeoForged Discord: https://discord.neoforged.net/
