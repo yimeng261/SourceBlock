@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "sourceblock:empty_source_block",
+    "sourceblock:water_source_block",
+    "sourceblock:lava_source_block",
+    "sourceblock:milk_source_block"
+  ]
+}
+

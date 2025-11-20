@@ -1,0 +1,15 @@
+{
+  "itemGroup.sourceblock": "源方块",
+  "block.sourceblock.source_block": "源方块",
+  "item.sourceblock.empty_source_block": "空源方块",
+  "item.sourceblock.empty_source_block.tooltip": "可以销毁流体、气体（需要Mekanism）和能量",
+  "item.sourceblock.water_source_block": "水源方块",
+  "item.sourceblock.water_source_block.tooltip": "无限提供水",
+  "item.sourceblock.lava_source_block": "岩浆源方块",
+  "item.sourceblock.lava_source_block.tooltip": "无限提供岩浆",
+  "item.sourceblock.milk_source_block": "牛奶源方块",
+  "item.sourceblock.milk_source_block.tooltip": "无限提供牛奶",
+  "sourceblock.info.mekanism_loaded": "检测到Mekanism，气体处理功能已启用",
+  "sourceblock.info.mekanism_not_loaded": "未检测到Mekanism，气体处理功能未启用"
+}
+

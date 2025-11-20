@@ -1,0 +1,15 @@
+{
+  "itemGroup.sourceblock": "Source Block",
+  "block.sourceblock.source_block": "Source Block",
+  "item.sourceblock.empty_source_block": "Empty Source Block",
+  "item.sourceblock.empty_source_block.tooltip": "Voids fluids, gases (requires Mekanism), and energy",
+  "item.sourceblock.water_source_block": "Water Source Block",
+  "item.sourceblock.water_source_block.tooltip": "Infinite water supply",
+  "item.sourceblock.lava_source_block": "Lava Source Block",
+  "item.sourceblock.lava_source_block.tooltip": "Infinite lava supply",
+  "item.sourceblock.milk_source_block": "Milk Source Block",
+  "item.sourceblock.milk_source_block.tooltip": "Infinite milk supply",
+  "sourceblock.info.mekanism_loaded": "Mekanism detected, gas handling enabled",
+  "sourceblock.info.mekanism_not_loaded": "Mekanism not detected, gas handling disabled"
+}
+
