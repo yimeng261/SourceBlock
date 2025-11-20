@@ -10,6 +10,9 @@
   "item.sourceblock.milk_source_block": "Milk Source Block",
   "item.sourceblock.milk_source_block.tooltip": "Infinite milk supply",
   "sourceblock.info.mekanism_loaded": "Mekanism detected, gas handling enabled",
-  "sourceblock.info.mekanism_not_loaded": "Mekanism not detected, gas handling disabled"
+  "sourceblock.info.mekanism_not_loaded": "Mekanism not detected, gas handling disabled",
+  "jei.sourceblock.milk_source_block.info": "To obtain: Right-click a cow with an Empty Source Block in hand. The cow will be consumed in the process.",
+  "jei.sourceblock.water_source_block.info": "Can be crafted with an Empty Source Block and a Water Bucket. Alternatively, right-click a placed Empty Source Block with a Water Bucket to fill it.",
+  "jei.sourceblock.lava_source_block.info": "Can be crafted with an Empty Source Block and a Lava Bucket. Alternatively, right-click a placed Empty Source Block with a Lava Bucket to fill it."
 }
 

@@ -1,6 +1,6 @@
 {
   "type": "minecraft:crafting_shapeless",
-  "category": "misc",
+  "group": "misc",
   "ingredients": [
     {
       "item": "sourceblock:empty_source_block"
@@ -10,7 +10,7 @@
     }
   ],
   "result": {
-    "item": "sourceblock:water_source_block"
+    "id": "sourceblock:water_source_block",
+    "count": 1
   }
 }
-

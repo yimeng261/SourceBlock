@@ -1,6 +1,6 @@
 {
   "type": "minecraft:crafting_shaped",
-  "category": "misc",
+  "group": "misc",
   "pattern": [
     "IBI",
     "B B",
@@ -15,7 +15,7 @@
     }
   },
   "result": {
-    "item": "sourceblock:empty_source_block"
+    "id": "sourceblock:empty_source_block",
+    "count": 1
   }
 }
-
