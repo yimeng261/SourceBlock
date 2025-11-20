@@ -93,11 +93,6 @@ B = Bucket
 #### Water/Lava Source Blocks
 - Shapeless: Empty Source Block + Water/Lava Bucket
 
-### Credits
-
-- Developed for Minecraft 1.21.1 with NeoForge
-- Mekanism API integration for chemical handling
-
 ---
 
 ## 中文
@@ -187,11 +182,6 @@ B = Bucket
 
 #### 水/岩浆源方块
 - 无序合成：空源方块 + 水桶/岩浆桶
-
-### 制作人员
-
-- 为Minecraft 1.21.1和NeoForge开发
-- 集成Mekanism API实现化学物质处理
 
 ---
 

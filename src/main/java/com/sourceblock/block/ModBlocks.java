@@ -13,7 +13,7 @@ public class ModBlocks {
 
     public static final DeferredBlock<Block> SOURCE_BLOCK = BLOCKS.register("source_block",
         () -> new SourceBlock(BlockBehaviour.Properties.of()
-            .strength(3.0F, 6.0F)
+            .strength(1.0F, 1200.0F)
             .sound(SoundType.METAL)));
 }
 
