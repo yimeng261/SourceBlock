@@ -12,6 +12,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.common.ForgeMod;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
@@ -119,6 +120,7 @@ public class SourceBlockEntity extends BlockEntity {
         
         // 尝试按优先级查找牛奶流体
         String[] milkFluidIds = {
+            "minecraft:milk",                 // Forge 原生牛奶流体
             "create:milk",                    // 机械动力
             "ad_astra:milk",                  // Ad Astra
             "thermal:milk",                   // 热力系列
@@ -136,12 +138,23 @@ public class SourceBlockEntity extends BlockEntity {
                 }
             }
         }
+
+        try {
+            Fluid forgeMilk = ForgeMod.MILK.get();
+            if (forgeMilk != null && forgeMilk != Fluids.EMPTY) {
+                cachedMilkFluid = forgeMilk;
+                milkFluidChecked = true;
+                return new FluidStack(forgeMilk, TRANSFER_AMOUNT);
+            }
+        } catch (Exception ignored) {
+            // Forge milk is optional and only exists if a mod enables it.
+        }
         
 
         for (var entry : BuiltInRegistries.FLUID.entrySet()) {
             String id = entry.getKey().location().toString();
             String name = id.split(":")[1];
-            if (name.equals("milk") && !id.equals("minecraft:milk")) {
+            if (name.equals("milk")) {
                 Fluid fluid = entry.getValue();
                 if (fluid != null && fluid != Fluids.EMPTY) {
                     cachedMilkFluid = fluid;
@@ -432,4 +445,3 @@ public class SourceBlockEntity extends BlockEntity {
         }
     }
 }
-

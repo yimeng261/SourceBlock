@@ -9,6 +9,7 @@ import com.github.yimeng261.sourceblock.item.ModItems;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
+import net.minecraftforge.common.ForgeMod;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
@@ -46,8 +47,14 @@ public class SourceBlockMod {
                 output.accept(ModItems.OBSIDIAN_SOURCE_BLOCK.get());
             }).build());
 
+    public SourceBlockMod() {
+        this(FMLJavaModLoadingContext.get());
+    }
+
     public SourceBlockMod(FMLJavaModLoadingContext context) {
         IEventBus modEventBus = context.getModEventBus();
+
+        ForgeMod.enableMilkFluid();
         
         // Register blocks, items, and block entities
         ModBlocks.BLOCKS.register(modEventBus);

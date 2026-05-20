@@ -10,7 +10,6 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
@@ -23,6 +22,11 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
+import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.FluidUtil;
+import net.minecraftforge.fluids.capability.IFluidHandler;
+import net.minecraftforge.items.ItemHandlerHelper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,54 +53,89 @@ public class SourceBlock extends BaseEntityBlock {
         ItemStack stack = player.getItemInHand(hand);
         FluidType currentType = state.getValue(FLUID_TYPE);
 
-        // 用水桶右键空槽
-        if (currentType == FluidType.EMPTY && stack.is(Items.WATER_BUCKET)) {
+        FluidType containerFluidType = getSupportedContainerFluidType(stack);
+        if (currentType == FluidType.EMPTY && containerFluidType != null) {
             if (!level.isClientSide) {
-                level.setBlockAndUpdate(pos, state.setValue(FLUID_TYPE, FluidType.WATER));
-                if (!player.isCreative()) {
-                    stack.shrink(1);
-                    player.addItem(new ItemStack(Items.BUCKET));
+                ItemStack result = drainOneContainer(stack, containerFluidType);
+                if (!result.isEmpty()) {
+                    level.setBlockAndUpdate(pos, state.setValue(FLUID_TYPE, containerFluidType));
+                    if (!player.isCreative()) {
+                        replaceHeldContainer(player, hand, stack, result);
+                    }
                 }
             }
             return InteractionResult.sidedSuccess(level.isClientSide);
         }
 
-        // 用岩浆桶右键空槽
-        if (currentType == FluidType.EMPTY && stack.is(Items.LAVA_BUCKET)) {
-            if (!level.isClientSide) {
-                level.setBlockAndUpdate(pos, state.setValue(FLUID_TYPE, FluidType.LAVA));
-                if (!player.isCreative()) {
-                    stack.shrink(1);
-                    player.addItem(new ItemStack(Items.BUCKET));
-                }
-            }
-            return InteractionResult.sidedSuccess(level.isClientSide);
-        }
-
-        // 用空桶右键已填充的槽，可以获得流体
-        if (stack.is(Items.BUCKET)) {
-            if (currentType == FluidType.WATER) {
-                if (!level.isClientSide && !player.isCreative()) {
-                    stack.shrink(1);
-                    player.addItem(new ItemStack(Items.WATER_BUCKET));
-                }
-                return InteractionResult.sidedSuccess(level.isClientSide);
-            } else if (currentType == FluidType.LAVA) {
-                if (!level.isClientSide && !player.isCreative()) {
-                    stack.shrink(1);
-                    player.addItem(new ItemStack(Items.LAVA_BUCKET));
-                }
-                return InteractionResult.sidedSuccess(level.isClientSide);
-            } else if (currentType == FluidType.MILK) {
-                if (!level.isClientSide && !player.isCreative()) {
-                    stack.shrink(1);
-                    player.addItem(new ItemStack(Items.MILK_BUCKET));
-                }
+        if (currentType != FluidType.EMPTY && hasFluidContainerCapability(stack) && level.getBlockEntity(pos) instanceof SourceBlockEntity entity) {
+            boolean handled = level.isClientSide || entity.getCapability(ForgeCapabilities.FLUID_HANDLER, hit.getDirection())
+                .map(handler -> FluidUtil.interactWithFluidHandler(player, hand, handler))
+                .orElse(false);
+            if (handled) {
                 return InteractionResult.sidedSuccess(level.isClientSide);
             }
         }
 
         return InteractionResult.PASS;
+    }
+
+    @Nullable
+    private static FluidType getSupportedContainerFluidType(ItemStack stack) {
+        if (stack.isEmpty()) {
+            return null;
+        }
+
+        return FluidUtil.getFluidContained(stack)
+            .map(fluidStack -> {
+                if (fluidStack.getFluid() == net.minecraft.world.level.material.Fluids.WATER) {
+                    return FluidType.WATER;
+                }
+                if (fluidStack.getFluid() == net.minecraft.world.level.material.Fluids.LAVA) {
+                    return FluidType.LAVA;
+                }
+                return null;
+            })
+            .orElse(null);
+    }
+
+    private static boolean hasFluidContainerCapability(ItemStack stack) {
+        if (stack.isEmpty()) {
+            return false;
+        }
+
+        return stack.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM).isPresent();
+    }
+
+    private static ItemStack drainOneContainer(ItemStack stack, FluidType fluidType) {
+        ItemStack singleContainer = ItemHandlerHelper.copyStackWithSize(stack, 1);
+        return singleContainer.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM)
+            .map(handler -> {
+                FluidStack requested = switch (fluidType) {
+                    case WATER -> new FluidStack(net.minecraft.world.level.material.Fluids.WATER, 1000);
+                    case LAVA -> new FluidStack(net.minecraft.world.level.material.Fluids.LAVA, 1000);
+                    default -> FluidStack.EMPTY;
+                };
+
+                if (requested.isEmpty() || !handler.drain(requested, IFluidHandler.FluidAction.SIMULATE).isFluidStackIdentical(requested)) {
+                    return ItemStack.EMPTY;
+                }
+
+                handler.drain(requested, IFluidHandler.FluidAction.EXECUTE);
+                return handler.getContainer();
+            })
+            .orElse(ItemStack.EMPTY);
+    }
+
+    private static void replaceHeldContainer(Player player, InteractionHand hand, ItemStack original, ItemStack result) {
+        if (original.getCount() == 1) {
+            player.setItemInHand(hand, result);
+            return;
+        }
+
+        original.shrink(1);
+        if (!player.addItem(result)) {
+            player.drop(result, false);
+        }
     }
 
     @Override
@@ -177,4 +216,3 @@ public class SourceBlock extends BaseEntityBlock {
         }
     }
 }
-
