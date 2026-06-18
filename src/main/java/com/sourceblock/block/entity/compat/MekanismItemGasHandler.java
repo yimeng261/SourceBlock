@@ -1,7 +1,7 @@
 package com.sourceblock.block.entity.compat;
 
-import com.sourceblock.block.SourceBlock;
-import com.sourceblock.block.entity.SourceBlockEntity;
+import com.sourceblock.block.ItemSourceBlock;
+import com.sourceblock.block.entity.ItemSourceBlockEntity;
 import mekanism.api.Action;
 import mekanism.api.chemical.ChemicalStack;
 import mekanism.api.chemical.IChemicalHandler;
@@ -10,13 +10,13 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Mekanism化学物质处理实现
- * 空源方块可以销毁所有输入的化学物质
+ * 空物品源方块可以销毁所有输入的化学物质
  */
-public class MekanismGasHandler implements IChemicalHandler {
+public class MekanismItemGasHandler implements IChemicalHandler {
     
-    private final SourceBlockEntity blockEntity;
+    private final ItemSourceBlockEntity blockEntity;
     
-    public MekanismGasHandler(SourceBlockEntity blockEntity) {
+    public MekanismItemGasHandler(ItemSourceBlockEntity blockEntity) {
         this.blockEntity = blockEntity;
     }
     
@@ -27,9 +27,9 @@ public class MekanismGasHandler implements IChemicalHandler {
         if (blockEntity.getLevel() == null) return false;
         
         BlockState state = blockEntity.getBlockState();
-        SourceBlock.FluidType fluidType = state.getValue(SourceBlock.FLUID_TYPE);
+        ItemSourceBlock.ItemType itemType = state.getValue(ItemSourceBlock.ITEM_TYPE);
         
-        return fluidType == SourceBlock.FluidType.EMPTY;
+        return itemType == ItemSourceBlock.ItemType.EMPTY;
     }
     
     @Override
@@ -79,3 +79,4 @@ public class MekanismGasHandler implements IChemicalHandler {
         return ChemicalStack.EMPTY;
     }
 }
+

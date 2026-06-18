@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "misc",
+  "ingredients": [
+    {
+      "item": "sourceblock:empty_item_source_block"
+    },
+    {
+      "item": "sourceblock:stone_source_block"
+    },
+    {
+      "item": "sourceblock:lava_source_block"
+    }
+  ],
+  "result": {
+    "id": "sourceblock:smooth_stone_source_block",
+    "count": 1
+  }
+}

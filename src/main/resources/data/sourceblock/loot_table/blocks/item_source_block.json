@@ -1,0 +1,80 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:alternatives",
+          "children": [
+            {
+              "type": "minecraft:item",
+              "name": "sourceblock:empty_item_source_block",
+              "conditions": [
+                {
+                  "condition": "minecraft:block_state_property",
+                  "block": "sourceblock:item_source_block",
+                  "properties": {
+                    "item_type": "empty"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "minecraft:item",
+              "name": "sourceblock:cobblestone_source_block",
+              "conditions": [
+                {
+                  "condition": "minecraft:block_state_property",
+                  "block": "sourceblock:item_source_block",
+                  "properties": {
+                    "item_type": "cobblestone"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "minecraft:item",
+              "name": "sourceblock:stone_source_block",
+              "conditions": [
+                {
+                  "condition": "minecraft:block_state_property",
+                  "block": "sourceblock:item_source_block",
+                  "properties": {
+                    "item_type": "stone"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "minecraft:item",
+              "name": "sourceblock:smooth_stone_source_block",
+              "conditions": [
+                {
+                  "condition": "minecraft:block_state_property",
+                  "block": "sourceblock:item_source_block",
+                  "properties": {
+                    "item_type": "smooth_stone"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "minecraft:item",
+              "name": "sourceblock:obsidian_source_block",
+              "conditions": [
+                {
+                  "condition": "minecraft:block_state_property",
+                  "block": "sourceblock:item_source_block",
+                  "properties": {
+                    "item_type": "obsidian"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

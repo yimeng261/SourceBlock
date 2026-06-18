@@ -3,6 +3,7 @@ package com.sourceblock.compat;
 import com.sourceblock.SourceBlockMod;
 import com.sourceblock.block.entity.ModBlockEntities;
 import com.sourceblock.block.entity.compat.MekanismGasHandler;
+import com.sourceblock.block.entity.compat.MekanismItemGasHandler;
 import mekanism.common.capabilities.Capabilities;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModList;
@@ -40,11 +41,18 @@ public class MekanismCompat {
     @SuppressWarnings("null")
     private static void registerCapabilities(RegisterCapabilitiesEvent event) {
         try {
-            // 注册化学物质处理能力（包括气体、流体、浆液等）
+            // 注册源方块的化学物质处理能力（包括气体、流体、浆液等）
             event.registerBlockEntity(
                 Capabilities.CHEMICAL.block(),
                 ModBlockEntities.SOURCE_BLOCK_ENTITY.get(),
                 (blockEntity, side) -> new MekanismGasHandler(blockEntity)
+            );
+            
+            // 注册物品源方块的化学物质处理能力
+            event.registerBlockEntity(
+                Capabilities.CHEMICAL.block(),
+                ModBlockEntities.ITEM_SOURCE_BLOCK_ENTITY.get(),
+                (blockEntity, side) -> new MekanismItemGasHandler(blockEntity)
             );
             
             SourceBlockMod.LOGGER.info("已注册Mekanism化学物质处理能力");

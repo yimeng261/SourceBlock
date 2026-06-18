@@ -4,12 +4,13 @@ import com.mojang.serialization.MapCodec;
 import com.sourceblock.block.entity.SourceBlockEntity;
 import com.sourceblock.item.ModItems;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
@@ -21,7 +22,14 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.BlockHitResult;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.common.NeoForgeMod;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.FluidUtil;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -52,55 +60,112 @@ public class SourceBlock extends BaseEntityBlock {
     protected @NotNull ItemInteractionResult useItemOn(@NotNull ItemStack stack, BlockState state, @NotNull Level level, @NotNull BlockPos pos,
                                                        @NotNull Player player, @NotNull InteractionHand hand, @NotNull BlockHitResult hitResult) {
         FluidType currentType = state.getValue(FLUID_TYPE);
+        ContainerFluid containerFluid = getSupportedContainerFluid(stack);
 
-        // 用水桶右键空槽
-        if (currentType == FluidType.EMPTY && stack.is(Items.WATER_BUCKET)) {
+        // 用支持的流体容器右键空源方块，将方块设置为对应流体。
+        if (currentType == FluidType.EMPTY && containerFluid != null) {
             if (!level.isClientSide) {
-                level.setBlockAndUpdate(pos, state.setValue(FLUID_TYPE, FluidType.WATER));
-                if (!player.isCreative()) {
-                    stack.shrink(1);
-                    player.addItem(new ItemStack(Items.BUCKET));
+                ItemStack result = drainOneContainer(stack, containerFluid.fluidStack());
+                if (!result.isEmpty()) {
+                    level.setBlockAndUpdate(pos, state.setValue(FLUID_TYPE, containerFluid.fluidType()));
+                    if (!player.isCreative()) {
+                        replaceHeldContainer(player, hand, stack, result);
+                    }
                 }
             }
             return ItemInteractionResult.sidedSuccess(level.isClientSide);
         }
 
-        // 用岩浆桶右键空槽
-        if (currentType == FluidType.EMPTY && stack.is(Items.LAVA_BUCKET)) {
-            if (!level.isClientSide) {
-                level.setBlockAndUpdate(pos, state.setValue(FLUID_TYPE, FluidType.LAVA));
-                if (!player.isCreative()) {
-                    stack.shrink(1);
-                    player.addItem(new ItemStack(Items.BUCKET));
-                }
+        if (currentType != FluidType.EMPTY && hasFluidContainerCapability(stack)) {
+            if (level.isClientSide) {
+                return ItemInteractionResult.sidedSuccess(true);
             }
-            return ItemInteractionResult.sidedSuccess(level.isClientSide);
-        }
 
-        // 用空桶右键已填充的槽，可以获得流体
-        if (stack.is(Items.BUCKET)) {
-            if (currentType == FluidType.WATER) {
-                if (!level.isClientSide && !player.isCreative()) {
-                    stack.shrink(1);
-                    player.addItem(new ItemStack(Items.WATER_BUCKET));
-                }
-                return ItemInteractionResult.sidedSuccess(level.isClientSide);
-            } else if (currentType == FluidType.LAVA) {
-                if (!level.isClientSide && !player.isCreative()) {
-                    stack.shrink(1);
-                    player.addItem(new ItemStack(Items.LAVA_BUCKET));
-                }
-                return ItemInteractionResult.sidedSuccess(level.isClientSide);
-            } else if (currentType == FluidType.MILK) {
-                if (!level.isClientSide && !player.isCreative()) {
-                    stack.shrink(1);
-                    player.addItem(new ItemStack(Items.MILK_BUCKET));
-                }
-                return ItemInteractionResult.sidedSuccess(level.isClientSide);
+            IFluidHandler handler = level.getCapability(Capabilities.FluidHandler.BLOCK, pos, hitResult.getDirection());
+            if (handler != null && FluidUtil.interactWithFluidHandler(player, hand, handler)) {
+                return ItemInteractionResult.sidedSuccess(false);
             }
         }
 
         return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+    }
+
+    @Nullable
+    private static ContainerFluid getSupportedContainerFluid(ItemStack stack) {
+        if (stack.isEmpty()) {
+            return null;
+        }
+
+        return FluidUtil.getFluidContained(stack)
+            .filter(fluidStack -> fluidStack.getAmount() >= 1000)
+            .map(fluidStack -> {
+                FluidType fluidType = getSupportedFluidType(fluidStack.getFluid());
+                return fluidType == null ? null : new ContainerFluid(fluidType, fluidStack.copyWithAmount(1000));
+            })
+            .orElse(null);
+    }
+
+    @Nullable
+    private static FluidType getSupportedFluidType(Fluid fluid) {
+        if (fluid == Fluids.WATER) {
+            return FluidType.WATER;
+        }
+        if (fluid == Fluids.LAVA) {
+            return FluidType.LAVA;
+        }
+        if (isMilkFluid(fluid)) {
+            return FluidType.MILK;
+        }
+        return null;
+    }
+
+    private static boolean isMilkFluid(Fluid fluid) {
+        if (fluid == Fluids.EMPTY) {
+            return false;
+        }
+        if (NeoForgeMod.MILK.isBound() && fluid == NeoForgeMod.MILK.value()) {
+            return true;
+        }
+
+        ResourceLocation id = BuiltInRegistries.FLUID.getKey(fluid);
+        return "milk".equals(id.getPath());
+    }
+
+    private static boolean hasFluidContainerCapability(ItemStack stack) {
+        return !stack.isEmpty() && stack.getCapability(Capabilities.FluidHandler.ITEM) != null;
+    }
+
+    private static ItemStack drainOneContainer(ItemStack stack, FluidStack requested) {
+        ItemStack singleContainer = stack.copyWithCount(1);
+        IFluidHandler handler = singleContainer.getCapability(Capabilities.FluidHandler.ITEM);
+        if (handler == null || requested.isEmpty()) {
+            return ItemStack.EMPTY;
+        }
+
+        FluidStack simulated = handler.drain(requested, IFluidHandler.FluidAction.SIMULATE);
+        if (simulated.getAmount() < requested.getAmount() || !FluidStack.isSameFluidSameComponents(simulated, requested)) {
+            return ItemStack.EMPTY;
+        }
+
+        handler.drain(requested, IFluidHandler.FluidAction.EXECUTE);
+        return handler instanceof net.neoforged.neoforge.fluids.capability.IFluidHandlerItem itemHandler
+            ? itemHandler.getContainer()
+            : ItemStack.EMPTY;
+    }
+
+    private static void replaceHeldContainer(Player player, InteractionHand hand, ItemStack original, ItemStack result) {
+        if (original.getCount() == 1) {
+            player.setItemInHand(hand, result);
+            return;
+        }
+
+        original.shrink(1);
+        if (!player.addItem(result)) {
+            player.drop(result, false);
+        }
+    }
+
+    private record ContainerFluid(FluidType fluidType, FluidStack fluidStack) {
     }
 
     @Override
@@ -133,6 +198,20 @@ public class SourceBlock extends BaseEntityBlock {
             default -> ModItems.EMPTY_SOURCE_BLOCK.get();
         };
         return Collections.singletonList(new ItemStack(dropItem));
+    }
+
+    @Override
+    public @NotNull ItemStack getCloneItemStack(BlockState state, net.minecraft.world.phys.HitResult target,
+                                                net.minecraft.world.level.LevelReader level,
+                                                @NotNull BlockPos pos, @NotNull Player player) {
+        FluidType fluidType = state.getValue(FLUID_TYPE);
+        Item item = switch (fluidType) {
+            case WATER -> ModItems.WATER_SOURCE_BLOCK.get();
+            case LAVA -> ModItems.LAVA_SOURCE_BLOCK.get();
+            case MILK -> ModItems.MILK_SOURCE_BLOCK.get();
+            default -> ModItems.EMPTY_SOURCE_BLOCK.get();
+        };
+        return new ItemStack(item);
     }
 
     public enum FluidType implements net.minecraft.util.StringRepresentable {

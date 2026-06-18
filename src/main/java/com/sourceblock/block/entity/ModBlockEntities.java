@@ -15,5 +15,20 @@ public class ModBlockEntities {
         BLOCK_ENTITIES.register("source_block_entity", () ->
             BlockEntityType.Builder.of(SourceBlockEntity::new, ModBlocks.SOURCE_BLOCK.get())
                 .build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CreativeSourceBlockEntity>> CREATIVE_SOURCE_BLOCK_ENTITY =
+        BLOCK_ENTITIES.register("creative_source_block_entity", () ->
+            BlockEntityType.Builder.of(CreativeSourceBlockEntity::new, ModBlocks.CREATIVE_SOURCE_BLOCK.get())
+                .build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CreativeItemSourceBlockEntity>> CREATIVE_ITEM_SOURCE_BLOCK_ENTITY =
+        BLOCK_ENTITIES.register("creative_item_source_block_entity", () ->
+            BlockEntityType.Builder.of(CreativeItemSourceBlockEntity::new, ModBlocks.CREATIVE_ITEM_SOURCE_BLOCK.get())
+                .build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ItemSourceBlockEntity>> ITEM_SOURCE_BLOCK_ENTITY =
+        BLOCK_ENTITIES.register("item_source_block_entity", () ->
+            BlockEntityType.Builder.of(ItemSourceBlockEntity::new, ModBlocks.ITEM_SOURCE_BLOCK.get())
+                .build(null));
 }
 

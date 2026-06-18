@@ -13,6 +13,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.common.NeoForgeMod;
 import net.neoforged.neoforge.energy.IEnergyStorage;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
@@ -36,7 +37,7 @@ import java.util.Map;
  */
 public class SourceBlockEntity extends BlockEntity implements IFluidHandler, IEnergyStorage {
     // 每个面的计时器
-    private final Map<Direction, Integer> tickCounters = new HashMap<>();
+    private int tickCounter=0;
     private final Map<Direction, Boolean> fastMode = new HashMap<>();
     
     private static final int SLOW_INTERVAL = 20;
@@ -53,8 +54,7 @@ public class SourceBlockEntity extends BlockEntity implements IFluidHandler, IEn
         
         // 初始化所有面的计时器和模式
         for (Direction direction : Direction.values()) {
-            tickCounters.put(direction, 0);
-            fastMode.put(direction, false);
+            fastMode.put(direction, true);
         }
     }
 
@@ -69,33 +69,16 @@ public class SourceBlockEntity extends BlockEntity implements IFluidHandler, IEn
         if (fluidStack.isEmpty()) return;
 
         // 对每个面进行处理
+        blockEntity.tickCounter++;
         for (Direction direction : Direction.values()) {
-            int currentTick = blockEntity.tickCounters.get(direction);
             boolean isFastMode = blockEntity.fastMode.get(direction);
-            
-            // 增加计时器
-            currentTick++;
-            
-            // 根据模式检查是否应该尝试输出
             int interval = isFastMode ? FAST_INTERVAL : SLOW_INTERVAL;
-            if (currentTick >= interval) {
-                currentTick = 0;
-                
-                // 尝试向该面输出流体
+
+            if (blockEntity.tickCounter % interval == 0) {
                 BlockPos neighborPos = pos.relative(direction);
                 boolean success = tryTransferFluid(level, neighborPos, direction.getOpposite(), fluidStack);
-                
-                // 根据输出结果更新模式
-                if (success) {
-                    // 成功输出，切换到快速模式
-                    blockEntity.fastMode.put(direction, true);
-                } else {
-                    // 输出失败，切换到慢速模式
-                    blockEntity.fastMode.put(direction, false);
-                }
+                blockEntity.fastMode.put(direction, success);
             }
-            
-            blockEntity.tickCounters.put(direction, currentTick);
         }
 
         blockEntity.setChanged();
@@ -128,9 +111,19 @@ public class SourceBlockEntity extends BlockEntity implements IFluidHandler, IEn
         if (cachedMilkFluid != null && cachedMilkFluid != Fluids.EMPTY) {
             return new FluidStack(cachedMilkFluid, TRANSFER_AMOUNT);
         }
+
+        if (NeoForgeMod.MILK.isBound()) {
+            Fluid forgeMilk = NeoForgeMod.MILK.value();
+            if (forgeMilk != Fluids.EMPTY) {
+                cachedMilkFluid = forgeMilk;
+                milkFluidChecked = true;
+                return new FluidStack(forgeMilk, TRANSFER_AMOUNT);
+            }
+        }
         
         // 尝试按优先级查找牛奶流体
         String[] milkFluidIds = {
+            "minecraft:milk",                 // NeoForge 原生牛奶流体
             "create:milk",                    // 机械动力
             "createbigcannons:milk",          // 机械动力大炮
             "create_confectionery:milk",      // 机械动力糖果
@@ -148,10 +141,10 @@ public class SourceBlockEntity extends BlockEntity implements IFluidHandler, IEn
             }
         }
         
-        // 如果上面的都没找到，尝试查找任何包含"milk"的流体
         for (var entry : BuiltInRegistries.FLUID.entrySet()) {
             String id = entry.getKey().location().toString();
-            if (id.contains("milk") && !id.equals("minecraft:milk")) {
+            String name = id.split(":")[1];
+            if (name.equals("milk")) {
                 Fluid fluid = entry.getValue();
                 if (fluid != null && fluid != Fluids.EMPTY) {
                     cachedMilkFluid = fluid;
@@ -167,7 +160,7 @@ public class SourceBlockEntity extends BlockEntity implements IFluidHandler, IEn
         return FluidStack.EMPTY;
     }
 
-    private static boolean tryTransferFluid(Level level, BlockPos pos, Direction direction, FluidStack fluidStack) {
+    static boolean tryTransferFluid(Level level, BlockPos pos, Direction direction, FluidStack fluidStack) {
         // 获取目标位置的流体处理能力
         IFluidHandler handler = level.getCapability(Capabilities.FluidHandler.BLOCK, pos, direction);
         
@@ -183,36 +176,22 @@ public class SourceBlockEntity extends BlockEntity implements IFluidHandler, IEn
     @Override
     protected void saveAdditional(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries) {
         super.saveAdditional(tag, registries);
-        
-        // 保存每个面的状态
-        CompoundTag facesTag = new CompoundTag();
-        for (Direction direction : Direction.values()) {
-            CompoundTag faceTag = new CompoundTag();
-            faceTag.putInt("tick", tickCounters.get(direction));
-            faceTag.putBoolean("fast", fastMode.get(direction));
-            facesTag.put(direction.getName(), faceTag);
-        }
-        tag.put("faces", facesTag);
     }
 
     @Override
     protected void loadAdditional(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries) {
         super.loadAdditional(tag, registries);
-        
-        // 加载每个面的状态
-        if (tag.contains("faces")) {
-            CompoundTag facesTag = tag.getCompound("faces");
-            for (Direction direction : Direction.values()) {
-                if (facesTag.contains(direction.getName())) {
-                    CompoundTag faceTag = facesTag.getCompound(direction.getName());
-                    tickCounters.put(direction, faceTag.getInt("tick"));
-                    fastMode.put(direction, faceTag.getBoolean("fast"));
-                }
-            }
-        }
     }
 
     // ========== IFluidHandler 实现 ==========
+
+    public IFluidHandler createFluidHandler() {
+        return this;
+    }
+
+    public IEnergyStorage createEnergyStorage() {
+        return this;
+    }
 
     @Override
     public int getTanks() {

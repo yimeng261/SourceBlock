@@ -16,6 +16,7 @@ import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
+import net.neoforged.neoforge.common.NeoForgeMod;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -42,9 +43,18 @@ public class SourceBlockMod {
                 output.accept(ModItems.WATER_SOURCE_BLOCK.get());
                 output.accept(ModItems.LAVA_SOURCE_BLOCK.get());
                 output.accept(ModItems.MILK_SOURCE_BLOCK.get());
+                output.accept(ModItems.CREATIVE_SOURCE_BLOCK.get());
+                output.accept(ModItems.CREATIVE_ITEM_SOURCE_BLOCK.get());
+                output.accept(ModItems.EMPTY_ITEM_SOURCE_BLOCK.get());
+                output.accept(ModItems.COBBLESTONE_SOURCE_BLOCK.get());
+                output.accept(ModItems.STONE_SOURCE_BLOCK.get());
+                output.accept(ModItems.SMOOTH_STONE_SOURCE_BLOCK.get());
+                output.accept(ModItems.OBSIDIAN_SOURCE_BLOCK.get());
             }).build());
 
     public SourceBlockMod(IEventBus modEventBus, ModContainer modContainer) {
+        NeoForgeMod.enableMilkFluid();
+
         // Register blocks, items, and block entities
         ModBlocks.BLOCKS.register(modEventBus);
         ModItems.ITEMS.register(modEventBus);
@@ -76,14 +86,49 @@ public class SourceBlockMod {
         event.registerBlockEntity(
             Capabilities.FluidHandler.BLOCK,
             ModBlockEntities.SOURCE_BLOCK_ENTITY.get(),
-            (blockEntity, side) -> blockEntity
+            (blockEntity, side) -> blockEntity.createFluidHandler()
         );
         
         // 注册源方块的能量处理能力（用于销毁能量）
         event.registerBlockEntity(
             Capabilities.EnergyStorage.BLOCK,
             ModBlockEntities.SOURCE_BLOCK_ENTITY.get(),
-            (blockEntity, side) -> blockEntity
+            (blockEntity, side) -> blockEntity.createEnergyStorage()
+        );
+
+        // 注册创造源方块的流体处理能力
+        event.registerBlockEntity(
+            Capabilities.FluidHandler.BLOCK,
+            ModBlockEntities.CREATIVE_SOURCE_BLOCK_ENTITY.get(),
+            (blockEntity, side) -> blockEntity.createFluidHandler()
+        );
+
+        // 注册创造物品源方块的物品处理能力
+        event.registerBlockEntity(
+            Capabilities.ItemHandler.BLOCK,
+            ModBlockEntities.CREATIVE_ITEM_SOURCE_BLOCK_ENTITY.get(),
+            (blockEntity, side) -> blockEntity.createItemHandler()
+        );
+
+        // 注册物品源方块的物品处理能力
+        event.registerBlockEntity(
+            Capabilities.ItemHandler.BLOCK,
+            ModBlockEntities.ITEM_SOURCE_BLOCK_ENTITY.get(),
+            (blockEntity, side) -> blockEntity.createItemHandler()
+        );
+
+        // 注册物品源方块的流体处理能力（用于销毁流体）
+        event.registerBlockEntity(
+            Capabilities.FluidHandler.BLOCK,
+            ModBlockEntities.ITEM_SOURCE_BLOCK_ENTITY.get(),
+            (blockEntity, side) -> blockEntity.createFluidHandler()
+        );
+
+        // 注册物品源方块的能量处理能力（用于销毁能量）
+        event.registerBlockEntity(
+            Capabilities.EnergyStorage.BLOCK,
+            ModBlockEntities.ITEM_SOURCE_BLOCK_ENTITY.get(),
+            (blockEntity, side) -> blockEntity.createEnergyStorage()
         );
     }
 
@@ -93,6 +138,13 @@ public class SourceBlockMod {
             event.accept(ModItems.WATER_SOURCE_BLOCK.get());
             event.accept(ModItems.LAVA_SOURCE_BLOCK.get());
             event.accept(ModItems.MILK_SOURCE_BLOCK.get());
+            event.accept(ModItems.CREATIVE_SOURCE_BLOCK.get());
+            event.accept(ModItems.CREATIVE_ITEM_SOURCE_BLOCK.get());
+            event.accept(ModItems.EMPTY_ITEM_SOURCE_BLOCK.get());
+            event.accept(ModItems.COBBLESTONE_SOURCE_BLOCK.get());
+            event.accept(ModItems.STONE_SOURCE_BLOCK.get());
+            event.accept(ModItems.SMOOTH_STONE_SOURCE_BLOCK.get());
+            event.accept(ModItems.OBSIDIAN_SOURCE_BLOCK.get());
         }
     }
 }
